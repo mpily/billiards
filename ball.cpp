@@ -1,7 +1,16 @@
 #include<iostream>
 #include<math.h>
 #include"ball.h"
+/*
+usefull formulae for collisions:
+  v2-v1 = -e(u2-u1)
+  m1u1+m2u2 = m1v1+m2v2
 
+  Applying the above 2 we get
+  v1 = (m1u1 + m2u2 + m2e(u2-u1))/(m1+m2)
+  v2 = v1 - e(u2-u1)
+
+*/
 bool ball :: inContact(ball & b){
   long double centdist = b.centre.distance(this->centre);
   if(centdist <= (b.radius + this->radius)){
@@ -15,49 +24,39 @@ bool ball :: isLeft(ball & b){
   else return false;
 }
 
-double setDelta(double theta, double alpha){
-  long double toret = cos(theta)*sin(alpha) -sin(theta)*cos(alpha);
-  return toret;
+void ballballcol(ball&b1,ball&b2){//takes 2 balls that are in contact and makes them collide
+  double v1x,v1y,v2x,v2y;
+  //solving in x component
+  double num = b1.velocity.xcomp * b1.mass + b2.velocity.xcomp*b2.mass + b2.mass *eball *(b2.velocity.xcomp - b1.velocity.xcomp);
+  double den = b1.mass + b2.mass;
+  v1x = num/den;
+  v2x = v1x - eball * (b2.velocity.xcomp - b1.velocity.xcomp);
+  //for y component
+  num = b1.velocity.ycomp * b1.mass + b2.velocity.ycomp*b2.mass + b2.mass *eball *(b2.velocity.ycomp - b1.velocity.ycomp);
+  den = b1.mass + b2.mass;
+  v1y = num/den;
+  v2y = v1y - eball * (b2.velocity.ycomp - b1.velocity.ycomp);
+  twoDvector newb1(v1x,v1y);
+  twoDvector newb2(v2x,v2y);
+  b1.velocity = newb1;
+  b2.velocity = newb2;
 }
 
-long double getv1(double alpha , twoDvector u1, double delta){
-  double toret = u1.xcomp * sin(alpha) - u1.ycomp * cos(alpha);
-  toret = toret/delta;
-  return toret;
-}
-
-long double getv2(double theta, twoDvector u1, double delta){
-  double toret = cos(theta)*u1.ycomp - sin(theta)*u1.xcomp;
-  toret = toret/delta;
-  return toret;
-}
-
-void setfinalvel0(ball & a, ball & b){//ball a has initial velocity of 0
-  double theta = a.centre.angle(b.centre);
-  std::cout<<"have found the angle between them to be "<<theta<<"\n";
-  double alpha;
-  if(a.isLeft(b)) alpha = theta + PI/2;
-  else alpha = theta - PI/2;
-  std::cout<<"alpha has become "<<alpha<<"\n";
-  double delta = setDelta(theta,alpha);
-  double mag1 = getv1(alpha,b.velocity,delta);
-  double mag2 = getv2(theta, b.velocity,delta);
-  std::cout<<"the  magnitude of velocity is "<<mag1<<"\n";
-  twoDvector v1 (mag1,theta,true);
-  twoDvector v2(mag2,alpha,true);
-  a.velocity = v1;
-  b.velocity = v2;
-}
-
-void setfinalvel(ball & a, ball& b){//the initial velocities do not matter
-  ball c = a;
-  ball d = b;
-  std::cout<<"have been able to do the assignment \n";
-  twoDvector veldelta = a.velocity;
-  c.velocity = c.velocity- veldelta;
-  d.velocity = d.velocity - veldelta;
-  if(c.velocity.xcomp == d.velocity.xcomp && c.velocity.ycomp == d.velocity.ycomp)return;
-  setfinalvel0(c,d);
-  a.velocity = c.velocity+veldelta;
-  b.velocity = d.velocity+veldelta;
+void ballwallcol(ball & a){
+  if(abs(a.centre.x) <= a.radius){ //For the wall at 0 left wall is a vertical wall hence only affects horizontal component
+    double v2 = -1.f* /*erail*/ a.velocity.xcomp;
+    a.velocity.xcomp = v2;
+  }
+  if(abs(a.centre.x - 900) <= a.radius){
+    double v2 = -1.f* /*erail*/ a.velocity.xcomp;
+    a.velocity.xcomp = v2;
+  }//for the wall at the right end... also vertical wall
+  if(abs(a.centre.y) <= a.radius){// for wall at top affects y component
+    double v2 = -1.f* /*erail*/a.velocity.ycomp;
+    a.velocity.ycomp = v2;
+  }
+  if(abs(a.centre.y - 450) <= a.radius){
+    double v2 = -1.f* /* erail*/a.velocity.ycomp;
+    a.velocity.ycomp = v2;
+  }//for the wall at the right end... also vertical wall
 }
